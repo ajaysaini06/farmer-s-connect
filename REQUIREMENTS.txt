@@ -1,0 +1,17 @@
+Farmer's Connect - Runtime Requirements
+
+Operating system: Windows 10/11, macOS, or Linux
+Node.js: 25.7.0 or newer
+npm: Included with the Node.js installer
+SQLite: Provided by Node.js through its built-in node:sqlite module
+Additional SQLite installation: Not required
+Third-party npm packages: None
+Browser: A current version of Edge, Chrome, Firefox, or Safari
+Development identity key: Generated at data/identity.key on first start
+Production identity key: Set IDENTITY_ENCRYPTION_KEY to 64 hexadecimal characters
+
+Install Node.js from the official download page:
+https://nodejs.org/en/download
+
+The minimum Node.js version is also specified in package.json.
+Keep data/identity.key with data/farmers-connect.sqlite when transferring an existing local database. The key is required to decrypt the registration verification documents.

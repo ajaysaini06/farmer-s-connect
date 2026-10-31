@@ -1,0 +1,13 @@
+{
+  "name": "farmers-connect",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Full-stack direct farmer-to-buyer marketplace MVP",
+  "engines": {
+    "node": ">=25.7.0"
+  },
+  "scripts": {
+    "start": "node server.mjs"
+  }
+}

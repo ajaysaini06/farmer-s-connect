@@ -1,0 +1,12 @@
+{
+  "name": "Farmer's Connect",
+  "short_name": "FarmConnect",
+  "description": "Direct, fair trade from farmers to buyers.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f6f7f1",
+  "theme_color": "#246b45",
+  "icons": [
+    { "src": "assets/leaf.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

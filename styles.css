@@ -41,9 +41,16 @@ a { color: inherit; }
 .nav-item.active { color: var(--green); background: #edf4e9; }
 .nav-icon { width: 20px; text-align: center; font-size: 17px; line-height: 1; }
 .side-spacer { flex: 1; }
-.help-card { border-radius: 15px; background: #eff5e9; padding: 15px 14px; margin: 10px 4px 15px; }
+.help-card { display:block;width:calc(100% - 8px);border:0;border-radius:15px;background:#eff5e9;padding:15px 14px;margin:10px 4px 15px;font:inherit;text-align:left;color:inherit;cursor:pointer; }
+.help-card:hover { background:#e8f1df; }
 .help-card strong { display: block; font-size: 12px; margin: 0 0 5px; }
-.help-card p { font-size: 11px; color: #6d796b; line-height: 1.55; margin: 0 0 10px; }
+.help-card-heading { display:flex;align-items:center;gap:10px;margin:0 0 11px; }
+.help-card-heading strong { margin:0;font-size:12px; }
+.help-card-title { display:grid;gap:3px; }
+.help-card-title > span { color:#82917e;font-size:8px;font-weight:700;letter-spacing:.8px; }
+.help-bot-icon { width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:12px;background:#deebd2; }
+.help-bot-icon svg { width:31px;height:31px; }
+.help-card-copy { display:block;font-size:11px;color:#6d796b;line-height:1.55;margin:0 0 10px; }
 .help-link { color: var(--green); border: 0; background: none; padding: 0; font-size: 11px; font-weight: 700; }
 .sidebar-footer { border-top: 1px solid var(--line); padding: 15px 10px 0; color: #8c938b; font-size: 10px; line-height: 1.6; }
 .main-area { margin-left: 246px; min-height: 100vh; }
@@ -193,7 +200,6 @@ h3 { font-size: 14px; margin: 0; letter-spacing: -.2px; }
 .market-price-filter-grid { display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:14px; }
 .market-price-filter-grid .field label { font-size:10px; }
 .market-price-filter-grid .field input,.market-price-filter-grid .field select { min-height:42px;font-size:11px; }
-.market-price-filter-grid .field select:disabled { background:#f5f6f3;color:#a0a79e; }
 .market-price-filter-actions { display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:17px;padding-top:15px;border-top:1px solid #eef0eb;color:#899287;font-size:10px;line-height:1.5; }
 .market-price-filter-actions > div { display:flex;flex:none;gap:8px; }
 .market-price-results { position:relative; }
@@ -232,6 +238,23 @@ h3 { font-size: 14px; margin: 0; letter-spacing: -.2px; }
 #market-price-chat-form { display:flex;gap:8px;padding:11px;border-top:1px solid #edf0eb; }
 #market-price-chat-form input { flex:1;min-width:0;border:1px solid #e0e5dc;border-radius:9px;padding:0 10px;font-size:10px; }
 #market-price-chat-form button { min-width:44px;border:0;border-radius:9px;background:var(--green);color:#fff;font-size:9px; }
+.top-guide-btn { display:none; }
+.top-guide-btn svg { width:23px;height:23px; }
+.modal.help-chat-modal { display:flex;flex-direction:column;gap:0;height:min(700px,88vh);min-height:min(480px,88vh);overflow:hidden;padding:0; }
+.help-chat-header { display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:22px 24px;border-bottom:1px solid var(--line); }
+.help-chat-header h2 { margin:4px 0 0;font-size:21px; }
+.help-chat-header p { margin:6px 0 0;color:#899287;font-size:11px;line-height:1.5; }
+.help-chat-main { display:flex;flex:1;flex-direction:column;min-height:0; }
+.help-chat-transcript { display:flex;flex:1;flex-direction:column;gap:10px;min-height:0;overflow:auto;padding:18px 22px;background:#fbfcfa; }
+.help-chat-bubble { max-width:88%;align-self:flex-start;border-radius:14px 14px 14px 4px;background:#edf3e9;padding:11px 13px;color:#465646;font-size:12px;line-height:1.55;white-space:pre-line; }
+.help-chat-bubble.user { align-self:flex-end;border-radius:14px 14px 4px 14px;background:var(--green);color:#fff; }
+.help-chat-suggestions { display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px 6px; }
+.help-chat-suggestions button { border:1px solid #dce7d7;border-radius:18px;background:#fff;color:var(--green);padding:7px 10px;font-size:10px;font-weight:600; }
+.help-chat-suggestions button:hover { background:#edf4e9; }
+.help-chat-form { display:flex;gap:9px;padding:14px 18px 10px;border-top:1px solid #edf0eb; }
+.help-chat-form input { flex:1;min-width:0;height:43px;border:1px solid #e0e5dc;border-radius:10px;padding:0 12px;font:inherit;font-size:12px; }
+.help-chat-form button { min-width:76px;border:0;border-radius:10px;background:var(--green);color:#fff;padding:0 15px;font-size:11px;font-weight:700; }
+.help-chat-note { padding:0 18px 13px;color:#9aa197;font-size:9px; }
 .market-badge { display:inline-flex;border-radius:6px;padding:5px 7px;background:#f1f5ed;color:#64825a;font-size:9px; }
 .insight-card { background:#eaf2e5;border-radius:15px;padding:18px;margin-bottom:12px; }
 .insight-card .big-emoji { font-size:25px; }
@@ -371,6 +394,7 @@ h3 { font-size: 14px; margin: 0; letter-spacing: -.2px; }
   .mobile-brand img { width:30px;height:30px; }
   .breadcrumb { display:none; }
   .location-pill { display:none; }
+  .top-guide-btn { display:grid; }
   .mobile-bottom { position:fixed;display:grid;grid-template-columns:repeat(5,1fr);inset:auto 0 0;z-index:15;padding:8px 7px max(8px, env(safe-area-inset-bottom));background:rgba(255,255,255,.97);border-top:1px solid var(--line);backdrop-filter:blur(12px); }
   .mobile-nav { border:0;background:transparent;color:#90988f;display:grid;justify-items:center;gap:3px;font-size:9px;padding:4px; }
   .mobile-nav span:first-child { font-size:17px; }
@@ -392,6 +416,11 @@ h3 { font-size: 14px; margin: 0; letter-spacing: -.2px; }
   .stat-top { font-size:10px; }
   .dashboard-grid { gap:12px; }
   .panel { padding:16px; }
+  .modal.help-chat-modal { height:min(720px,88vh);min-height:min(440px,88vh); }
+  .help-chat-header { padding:18px 16px; }
+  .help-chat-transcript { padding:15px; }
+  .help-chat-suggestions { gap:6px;padding:10px 13px 5px; }
+  .help-chat-form { padding:11px 13px 9px; }
   .price-row { grid-template-columns:minmax(108px,1.25fr) .9fr .6fr; }
   .price-row > :nth-child(3) { display:none; }
   .listing-grid { grid-template-columns:1fr 1fr;gap:10px; }

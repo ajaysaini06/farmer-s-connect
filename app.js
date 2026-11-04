@@ -7,8 +7,8 @@
     requirements: [], orders: [], inquiries: [], activeInquiry: '',
     notifications: true, notificationItems: [], notificationFilter: 'all', editingListingId: '',
     marketPriceRecords: [], marketPriceLoaded: false, marketPriceLoadedState: '', marketPriceLoading: false, marketPriceError: '', marketPriceSetupRequired: false, marketPriceApiVersion: 0, marketPriceSourceRecordCount: 0, marketPriceUnmappedRecordCount: 0, marketPriceFetchedAt: '', marketPriceSourceUpdatedAt: '',
-    marketPriceDraft: { state: '', district: '', commodityGroup: '', commodity: '', variety: '', grade: '', market: '', fromDate: '', toDate: '' }, marketPriceApplied: null, marketPricePage: 1, marketPricePageSize: 10,
-    marketPriceChatOpen: false, marketPriceChatMessages: [],
+    marketPriceDraft: { state: '', district: '', commodityGroup: '', commodity: '', fromDate: '', toDate: '' }, marketPriceApplied: null, marketPricePage: 1, marketPricePageSize: 10,
+    marketPriceChatOpen: false, marketPriceChatMessages: [], helpChatMessages: [],
   };
   const state = Object.assign(structuredCloneSafe(defaults), { authenticated: false, user: null });
   let toastTimer;
@@ -126,6 +126,7 @@
     try {
       await api('/auth/logout', { method: 'POST' });
       state.authenticated = false; state.user = null; state.role = ''; state.page = 'dashboard';
+      state.helpChatMessages = [];
       render(); onboarding();
     } catch (error) { toast(error.message); }
   }
@@ -165,6 +166,9 @@
   }
   function roleName() { return ({ farmer: word('Farmer','किसान'), consumer: word('Consumer','ग्राहक'), industry: word('Industry buyer','व्यापार खरीदार') })[state.role] || 'Farmer'; }
   function roleIcon() { return ({ farmer:'🌱', consumer:'🧺', industry:'🏪' })[state.role] || '🌱'; }
+  function plantAiIcon() {
+    return `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M9 7.5h30a5.5 5.5 0 0 1 5.5 5.5v15a5.5 5.5 0 0 1-5.5 5.5H25l-9 7v-7H9A5.5 5.5 0 0 1 3.5 28V13A5.5 5.5 0 0 1 9 7.5Z" fill="#fff" stroke="#276f49" stroke-width="2.5" stroke-linejoin="round"/><path d="M24 29v-9" fill="none" stroke="#477d43" stroke-width="2.5" stroke-linecap="round"/><path d="M24 22c-7.5 0-10.5-4.1-10.5-8.5 6.3 0 10.5 2.8 10.5 8.5Z" fill="#8fbd5c"/><path d="M24 25c0-6.2 4.2-10 10.5-10 0 5.3-3.4 9.4-10.5 10Z" fill="#5d9b4c"/></svg>`;
+  }
   function openModal(html, wide = false, fullPage = false) {
     const root = document.getElementById('modal-root');
     const isReplacingModal = Boolean(root.firstElementChild);
@@ -274,11 +278,12 @@
   function dateLabel() { return new Intl.DateTimeFormat(state.language === 'hi' ? 'hi-IN' : 'en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date()).toLocaleUpperCase(state.language === 'hi' ? 'hi-IN' : 'en-IN'); }
   function topbar() {
     const unread = state.notificationItems.filter((item) => !item.read).length;
-    return `<header class="topbar"><div class="breadcrumb"><span>Farmer's Connect</span> &nbsp;/&nbsp; <b>${pageTitle()}</b></div><div class="mobile-brand"><img src="assets/leaf.svg" alt=""/> Farmer's Connect</div><div class="top-actions"><button class="location-pill" data-action="location">⌖ &nbsp;${esc(state.location || word('Choose location','Choose location'))}⌄</button><button class="icon-btn" aria-label="${word('Notifications','सूचनाएँ')}" title="${word('Notifications','सूचनाएँ')}" data-page="notifications">♧${unread ? `<span class="notification-count">${unread > 99 ? '99+' : unread}</span>` : ''}</button><button class="user-mini" aria-label="Open profile" data-page="profile">${esc(initials(currentUser()))}</button></div></header>`;
+    return `<header class="topbar"><div class="breadcrumb"><span>Farmer's Connect</span> &nbsp;/&nbsp; <b>${pageTitle()}</b></div><div class="mobile-brand"><img src="assets/leaf.svg" alt=""/> Farmer's Connect</div><div class="top-actions"><button class="location-pill" data-action="location">&#x2316; &nbsp;${esc(state.location || word('Choose location','\u091c\u0917\u0939 \u091a\u0941\u0928\u0947\u0902'))}&#x2304;</button><button class="icon-btn top-guide-btn" aria-label="${word('Open Plant AI','Plant AI \u0916\u094b\u0932\u0947\u0902')}" title="${word('Plant AI','Plant AI')}" data-action="help">${plantAiIcon()}</button><button class="icon-btn" aria-label="${word('Notifications','\u0938\u0942\u091a\u0928\u093e\u090f\u0901')}" title="${word('Notifications','\u0938\u0942\u091a\u0928\u093e\u090f\u0901')}" data-page="notifications">&#x2667;${unread ? `<span class="notification-count">${unread > 99 ? '99+' : unread}</span>` : ''}</button><button class="user-mini" aria-label="Open profile" data-page="profile">${esc(initials(currentUser()))}</button></div></header>`;
   }
   function sidebar() {
     const links = navItems().map((item) => `<button class="nav-item ${state.page === item.id ? 'active' : ''}" data-page="${item.id}" ${item.resetMarketplace ? 'data-reset-marketplace' : ''}><span class="nav-icon">${esc(item.icon)}</span>${item.label}</button>`).join('');
-    return `<aside class="sidebar"><div class="brand"><span class="brand-mark">❧</span><div><div class="brand-name">Farmer's Connect</div><div class="brand-sub">GROW TOGETHER · TRADE FAIR</div></div></div><div class="role-display" aria-label="${roleName()}"><span class="role-avatar">${roleIcon()}</span><span class="role-copy"><span class="role-value">${roleName()}</span></span></div><div class="side-caption">${word('Workspace','कार्यस्थल')}</div><nav class="nav-list">${links}<button class="nav-item ${state.page === 'profile' ? 'active' : ''}" data-page="profile"><span class="nav-icon">◉</span>${word('My profile','मेरी प्रोफ़ाइल')}</button></nav><div class="side-spacer"></div><div class="help-card"><strong>${word('Here to help','हम मदद के लिए हैं')} 👋</strong><p>${word('Talk to our team in your language, any day of the week.','हमारी टीम से अपनी भाषा में बात करें।')}</p><button class="help-link" data-action="help">${word('Get support','सहायता लें')} &nbsp;→</button></div><div class="sidebar-footer">© 2026 Farmer's Connect<br/>A fairer way to grow.</div></aside>`;
+    const helpCard = `<button type="button" class="help-card" data-action="help" aria-label="${word('Open Plant AI','Plant AI \u0916\u094b\u0932\u0947\u0902')}"><span class="help-card-heading"><span class="help-bot-icon">${plantAiIcon()}</span><span class="help-card-title"><strong>${word('Plant AI','Plant AI')}</strong><span>${word('FARM GUIDE','\u0916\u0947\u0924\u0940 \u0938\u0939\u093e\u092f\u0915')}</span></span></span><span class="help-card-copy">${word('Ask Plant AI about app features, buying, selling, and orders.','\u0910\u092a \u0915\u0940 \u0938\u0941\u0935\u093f\u0927\u093e\u0913\u0902, \u0916\u0930\u0940\u0926, \u092c\u093f\u0915\u094d\u0930\u0940 \u0914\u0930 \u0911\u0930\u094d\u0921\u0930 \u0915\u0947 \u092c\u093e\u0930\u0947 \u092e\u0947\u0902 \u092a\u0942\u091b\u0947\u0902\u0964')}</span><span class="help-link">${word('Ask Plant AI','Plant AI \u0938\u0947 \u092a\u0942\u091b\u0947\u0902')} &nbsp;&#x2192;</span></button>`;
+    return `<aside class="sidebar"><div class="brand"><span class="brand-mark">&#x2767;</span><div><div class="brand-name">Farmer's Connect</div><div class="brand-sub">GROW TOGETHER &middot; TRADE FAIR</div></div></div><div class="role-display" aria-label="${roleName()}"><span class="role-avatar">${roleIcon()}</span><span class="role-copy"><span class="role-value">${roleName()}</span></span></div><div class="side-caption">${word('Workspace','\u0915\u093e\u0930\u094d\u092f\u0938\u094d\u0925\u0932')}</div><nav class="nav-list">${links}<button class="nav-item ${state.page === 'profile' ? 'active' : ''}" data-page="profile"><span class="nav-icon">&#x25C9;</span>${word('My profile','\u092e\u0947\u0930\u0940 \u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932')}</button></nav><div class="side-spacer"></div>${helpCard}<div class="sidebar-footer">&copy; 2026 Farmer's Connect<br/>A fairer way to grow.</div></aside>`;
   }
   function mobileNav() {
     const items = [navItems()[0], navItems()[1], navItems()[2], navItems()[3], { id: 'profile', icon: '◉', label: word('Profile','प्रोफ़ाइल') }];
@@ -414,9 +419,6 @@
       if (!ignored.includes('district') && filters.district && record.district !== filters.district) return false;
       if (!ignored.includes('commodityGroup') && filters.commodityGroup && marketPriceGroup(record.commodity) !== filters.commodityGroup) return false;
       if (!ignored.includes('commodity') && filters.commodity && record.commodity !== filters.commodity) return false;
-      if (!ignored.includes('variety') && filters.variety && record.variety !== filters.variety) return false;
-      if (!ignored.includes('grade') && filters.grade && record.grade !== filters.grade) return false;
-      if (!ignored.includes('market') && filters.market && record.market !== filters.market) return false;
       return true;
     });
   }
@@ -426,12 +428,9 @@
   }
   function marketPriceFilterOptions(draft) {
     const states = [...new Set([...indiaLocations.map((entry) => entry.state), ...uniqueMarketPriceValues(state.marketPriceRecords, 'state')])].sort((a, b) => a.localeCompare(b));
-    const stateOnly = marketPriceRecordsMatching(draft, ['district', 'commodityGroup', 'commodity', 'variety', 'grade', 'market']);
-    const regionOnly = marketPriceRecordsMatching(draft, ['commodityGroup', 'commodity', 'variety', 'grade', 'market']);
-    const groupOnly = marketPriceRecordsMatching(draft, ['commodity', 'variety', 'grade', 'market']);
-    const commodityOnly = marketPriceRecordsMatching(draft, ['variety', 'grade', 'market']);
-    const varietyOnly = marketPriceRecordsMatching(draft, ['grade', 'market']);
-    const gradeOnly = marketPriceRecordsMatching(draft, ['market']);
+    const stateOnly = marketPriceRecordsMatching(draft, ['district', 'commodityGroup', 'commodity']);
+    const regionOnly = marketPriceRecordsMatching(draft, ['commodityGroup', 'commodity']);
+    const groupOnly = marketPriceRecordsMatching(draft, ['commodity']);
     const directoryDistricts = indiaLocations.find((entry) => entry.state === draft.state)?.districts || [];
     const hasStateData = state.marketPriceLoaded && state.marketPriceLoadedState === draft.state && !state.marketPriceSetupRequired;
     const fallbackGroups = MARKET_PRICE_GROUPS;
@@ -441,9 +440,6 @@
       districts: [...new Set([...directoryDistricts, ...uniqueMarketPriceValues(stateOnly, 'district')])].sort((a, b) => a.localeCompare(b)),
       groups: hasStateData ? [...new Set(groupOnly.map((record) => marketPriceGroup(record.commodity)))].sort((a, b) => a.localeCompare(b)) : fallbackGroups,
       commodities: hasStateData ? uniqueMarketPriceValues(regionOnly.filter((record) => !draft.commodityGroup || marketPriceGroup(record.commodity) === draft.commodityGroup), 'commodity') : fallbackCrops,
-      varieties: uniqueMarketPriceValues(commodityOnly, 'variety'),
-      grades: uniqueMarketPriceValues(varietyOnly, 'grade'),
-      markets: uniqueMarketPriceValues(gradeOnly, 'market'),
     };
   }
   function filteredMarketPrices() {
@@ -506,6 +502,138 @@
       if (state.page === 'prices') render();
     }
   }
+  function helpChatReply(question) {
+    const raw = String(question || '');
+    const text = raw.toLocaleLowerCase();
+    const say = (english, hindi) => state.language === 'hi' || /[\u0900-\u097f]/.test(raw) ? hindi : english;
+    const has = (...terms) => terms.some((term) => text.includes(term));
+
+    if (/^(hello|hi|hey|नमस्ते|नमस्कार)[\s!?.]*$/u.test(text)) return say(
+      'Hello! I’m Plant AI, your agriculture app assistant. Ask me about any feature in English or Hindi.',
+      'नमस्ते! मैं Plant AI हूँ। ऐप की किसी भी सुविधा के बारे में हिंदी या अंग्रेज़ी में पूछें।',
+    );
+    if (has('gstin', 'udyam', 'industry registration', 'industry signup', 'industry sign up', 'industry document', 'authorized person', 'owner name', 'जीएसटी', 'उद्यम')) return say(
+      'To register as an industry buyer, choose Industry buyer and enter the industry name, owner or authorized person, mobile number, email, GSTIN, State, and District. Upload the industry registration or Udyam document, then continue to mobile OTP verification. This demo stores the details but does not verify them against government records.',
+      'उद्योग खरीदार के रूप में पंजीकरण के लिए Industry buyer चुनें और उद्योग का नाम, मालिक या अधिकृत व्यक्ति, मोबाइल नंबर, ईमेल, GSTIN, राज्य और ज़िला भरें। उद्योग पंजीकरण या उद्यम दस्तावेज़ अपलोड करके मोबाइल OTP सत्यापन जारी रखें। यह डेमो जानकारी सहेजता है, लेकिन सरकारी रिकॉर्ड से उसकी पुष्टि नहीं करता।',
+    );
+    if (has('otp', 'login', 'log in', 'sign up', 'register', 'password', 'account', 'लॉग इन', 'खाता', 'पंजीकरण', 'पासवर्ड', 'ओटीपी')) return say(
+      'New accounts choose Farmer, Consumer, or Industry buyer. Farmers provide location, a government ID, and one farmer record (Farmer Registry ID, KCC, land record, or PM-KISAN); consumers provide location, a government ID, and occupation; industry buyers provide business and authorized-person details, contact information, GSTIN, location, and a registration or Udyam document. New accounts verify their phone with OTP; this demo does not check documents against government records. Existing users log in with phone and password without OTP. Use Set password for an older account that needs password setup.',
+      'नया खाता बनाते समय किसान, ग्राहक या उद्योग खरीदार चुनें। किसान जगह, सरकारी पहचान-पत्र और एक किसान रिकॉर्ड (Farmer Registry ID, KCC, भूमि रिकॉर्ड या PM-KISAN) देते हैं; ग्राहक जगह, सरकारी पहचान-पत्र और व्यवसाय देते हैं; उद्योग खरीदार कारोबार और अधिकृत व्यक्ति का विवरण, संपर्क जानकारी, GSTIN, जगह और पंजीकरण या उद्यम दस्तावेज़ देते हैं। नए खाते में OTP से फ़ोन सत्यापित होता है; यह डेमो दस्तावेज़ों की सरकारी रिकॉर्ड से जाँच नहीं करता। पुराने उपयोगकर्ता बिना OTP के फ़ोन और पासवर्ड से लॉग इन करें। पुराने खाते के लिए पासवर्ड सेट करें विकल्प उपयोग करें।',
+    );
+    if (has('industry', 'bulk', 'requirement', 'purchase requirement', 'sourcing', 'supplier', 'matching growers', '\u0925\u094b\u0915', '\u0906\u0935\u0936\u094d\u092f\u0915\u0924\u093e')) return say(
+      'Industry buyers can add a purchase requirement from the dashboard. Enter the crop, quantity, unit, needed-by date, and quality or delivery details, then save it. The request is recorded in the app; automatic supplier matching and contracts are not connected yet.',
+      'उद्योग खरीदार डैशबोर्ड से खरीद की ज़रूरत जोड़ सकते हैं। उपज, मात्रा, इकाई, ज़रूरत की तारीख और गुणवत्ता या डिलीवरी का विवरण भरकर सहेजें। अनुरोध ऐप में दर्ज होता है; अपने-आप सप्लायर मिलान और अनुबंध अभी उपलब्ध नहीं हैं।',
+    );
+    if (has('place an order', 'send order', 'order request', 'how do i buy', 'how to buy', 'buy produce', 'purchase', 'quantity', 'delivery preference', 'buy', 'ऑर्डर अनुरोध', 'खरीद', 'मात्रा', 'डिलीवरी का विकल्प')) return say(
+      isFarmer()
+        ? 'Buy is for consumer buyers. To receive requests, publish your produce listing and check Orders & receipts. Open Messages to discuss quantity, quality, and delivery with a buyer.'
+        : 'In Marketplace, search by crop, farmer, or location and narrow results by State, District, and category. Open a listing and choose Buy. Enter a quantity no greater than the amount available, choose a delivery preference, add an optional message, and send the order request. The request is saved in Orders & receipts. Payment is not processed in this app; coordinate details through Messages.',
+      isFarmer()
+        ? 'खरीद का विकल्प ग्राहक खरीदारों के लिए है। अनुरोध पाने के लिए अपनी उपज सूची प्रकाशित करें और ऑर्डर और रसीदें देखें। खरीदार से मात्रा, गुणवत्ता और डिलीवरी पर बात करने के लिए संदेश खोलें।'
+        : 'बाज़ार में उपज, किसान या जगह खोजें और राज्य, ज़िला व श्रेणी से नतीजे सीमित करें। सूची खोलकर खरीदें चुनें। उपलब्ध मात्रा से ज़्यादा मात्रा न भरें, डिलीवरी का विकल्प चुनें, चाहें तो संदेश लिखें और ऑर्डर अनुरोध भेजें। अनुरोध ऑर्डर और रसीदें में सहेजा जाता है। ऐप भुगतान नहीं करता; बाकी जानकारी संदेशों में तय करें।',
+    );
+    if (has('add produce', 'list produce', 'my produce', 'sell', 'listing', 'publish', 'उपज जोड़', 'मेरी उपज', 'बेच', 'लिस्टिंग', 'फसल की सूची')) return say(
+      'Farmers can select Add produce from the dashboard or My produce. Enter the crop, category, quantity, unit, price, harvest date, quality, location, and optional description or photo, then publish. In My produce, use Edit or Remove to manage a listing.',
+      'किसान डैशबोर्ड या मेरी उपज से उपज जोड़ें चुन सकते हैं। उपज, श्रेणी, मात्रा, इकाई, भाव, कटाई की तारीख, गुणवत्ता, जगह और चाहें तो विवरण या तस्वीर भरकर प्रकाशित करें। मेरी उपज में सूची बदलने के लिए संपादित करें या हटाएँ चुनें।',
+    );
+    if (has('market price', 'price report', 'agmarknet', 'mandi', 'regional price', 'wholesale price', '\u092c\u093e\u091c\u093c\u093e\u0930 \u092d\u093e\u0935', '\u092e\u0902\u0921\u0940 \u092d\u093e\u0935', '\u0915\u094d\u0937\u0947\u0924\u094d\u0930\u0940\u092f \u092d\u093e\u0935', '\u0925\u094b\u0915 \u092d\u093e\u0935')) return say(
+      'Regional market prices show daily wholesale reports. Choose State, District, Commodity group, Crop, and an optional date range, then press Search. Reset clears the filters. Market, variety, and grade appear in the results table. These are daily reports, not live trading prices; use Retry if the feed is unavailable.',
+      'क्षेत्रीय बाज़ार भाव में रोज़ाना के थोक भाव दिखते हैं। राज्य, ज़िला, उपज समूह, उपज और चाहें तो तारीख की सीमा चुनकर खोजें दबाएँ। रीसेट से फ़िल्टर साफ़ होते हैं। मंडी, किस्म और ग्रेड नतीजों की तालिका में दिखते हैं। ये रोज़ाना की रिपोर्ट हैं, लाइव भाव नहीं; डेटा न मिले तो फिर कोशिश करें।',
+    );
+    if (has('marketplace', 'browse', 'search', 'find produce', 'buy produce', 'sort', 'price low', 'low to high', 'high to low', 'category', 'filter', 'खोज', 'खरीद', 'बाज़ार', 'श्रेणी', 'फ़िल्टर', 'फिल्टर', 'छाँट', 'कम से ज़्यादा', 'ज़्यादा से कम')) return say(
+      'In Marketplace, search by crop, farmer, or location. Narrow results with State, District, and category, then sort by recommended or price. Open a listing to review its seller, location, available quantity, and price. Choose Message to ask the seller or Buy to send an order request.',
+      'बाज़ार में उपज, किसान या जगह से खोजें। राज्य, ज़िला और श्रेणी चुनकर नतीजे सीमित करें और सुझाव या भाव के अनुसार क्रम चुनें। सूची खोलकर विक्रेता, जगह, उपलब्ध मात्रा और भाव देखें। विक्रेता से पूछने के लिए संदेश या ऑर्डर अनुरोध भेजने के लिए खरीदें चुनें।',
+    );
+    if (has('notification', 'alert', 'unread', 'सूचना', 'सूचनाएँ', 'सूचनाएं', 'नोटिफिकेशन', 'अलर्ट')) return say(
+      'Open Notifications from the bell icon or the workspace menu. It shows app updates such as new orders, completed orders, and payment status changes. Open an item to read it; use the read controls to clear unread indicators.',
+      'घंटी के निशान या कार्यस्थल मेनू से सूचनाएँ खोलें। यहाँ नए ऑर्डर, पूरे हुए ऑर्डर और भुगतान स्थिति में बदलाव जैसे अपडेट दिखते हैं। सूचना पढ़ने के लिए उसे खोलें; अपठित संकेत हटाने के लिए पढ़ने वाले विकल्प चुनें।',
+    );
+    if (has('message', 'conversation', 'chat with seller', 'contact farmer', 'संदेश', 'बातचीत', 'किसान से बात', 'विक्रेता से बात')) return say(
+      'Choose Message on a produce listing to start a conversation with its farmer. You can return to it from Messages, select the conversation, and send a reply. Order questions and delivery details can be discussed there.',
+      'किसान से बातचीत शुरू करने के लिए उपज की सूची में संदेश चुनें। बाद में संदेश पृष्ठ खोलें, बातचीत चुनें और जवाब भेजें। ऑर्डर या डिलीवरी के बारे में वहीं बात कर सकते हैं।',
+    );
+    if (has('order', 'receipt', 'payment', 'pay', 'paid', 'money', 'delivery', 'invoice', 'ऑर्डर', 'रसीद', 'भुगतान', 'पैसा', 'पैसे', 'डिलीवरी')) return say(
+      isFarmer()
+        ? 'Orders & receipts keeps your trade records. Open an order to view its receipt; mark it In transit and then Delivered as it progresses. You can record a payment manually. The app does not process payments.'
+        : 'Orders & receipts keeps your trade records. Open an order to view its receipt. After delivery, confirm completion when the produce arrives. You can download the records as a CSV. The app does not process payments.',
+      isFarmer()
+        ? 'ऑर्डर और रसीदें आपके व्यापार का रिकॉर्ड रखता है। रसीद देखने के लिए ऑर्डर खोलें; आगे बढ़ने पर उसे रास्ते में और फिर डिलीवर हुआ चिह्नित करें। भुगतान मिलने पर उसे मैन्युअल रूप से दर्ज कर सकते हैं। ऐप भुगतान नहीं करता।'
+        : 'ऑर्डर और रसीदें आपके व्यापार का रिकॉर्ड रखता है। रसीद देखने के लिए ऑर्डर खोलें। उपज मिलने के बाद ऑर्डर पूरा होने की पुष्टि करें। रिकॉर्ड CSV में डाउनलोड कर सकते हैं। ऐप भुगतान नहीं करता।',
+    );
+    if (has('location', 'state', 'district', 'language', 'place', 'लोकेशन', 'जगह', 'राज्य', 'ज़िला', 'जिला', 'भाषा')) return say(
+      'Use the location button in the top bar or edit your profile to choose a State and District. This helps the app show nearby produce and regional information. Change the app language in My profile; English and Hindi are supported.',
+      'राज्य और ज़िला चुनने के लिए ऊपर जगह वाले बटन का उपयोग करें या अपनी प्रोफ़ाइल बदलें। इससे आसपास की उपज और क्षेत्र की जानकारी दिखाने में मदद मिलती है। मेरी प्रोफ़ाइल में ऐप की भाषा बदलें; अंग्रेज़ी और हिंदी उपलब्ध हैं।',
+    );
+    if (has('profile', 'name', 'about me', 'details', 'प्रोफ़ाइल', 'नाम', 'विवरण')) return say(
+      'Open My profile to update your name, State, District, About details, language, and notification preference. Your registered phone number is shown there but cannot be edited from this page.',
+      'नाम, राज्य, ज़िला, अपने बारे में जानकारी, भाषा और सूचना की पसंद बदलने के लिए मेरी प्रोफ़ाइल खोलें। पंजीकृत फ़ोन नंबर वहाँ दिखता है, लेकिन इस पृष्ठ से बदला नहीं जा सकता।',
+    );
+    if (has('dashboard', 'overview', 'home', 'active listing', 'recent order', 'local price watch', 'डैशबोर्ड', 'मुख्य पृष्ठ', 'शुरुआत', 'सक्रिय सूची', 'हाल के ऑर्डर')) return say(
+      isFarmer()
+        ? 'Dashboard summarizes your active listings, orders, order value, and listing ratings. Select Active listings to open My produce, and use Recent orders or Local price watch to go to those sections.'
+        : isIndustry()
+          ? 'Dashboard summarizes nearby marketplace activity, your orders, conversations, and purchase requirements. Use Add requirement to tell growers what your business needs.'
+          : 'Dashboard summarizes nearby produce, your orders, order value, and conversations. Use Browse produce to open Marketplace, and Recent orders to review your purchases.',
+      isFarmer()
+        ? 'डैशबोर्ड आपकी सक्रिय उपज-सूचियाँ, ऑर्डर, ऑर्डर राशि और सूची की रेटिंग का सार दिखाता है। मेरी उपज खोलने के लिए सक्रिय सूचियाँ चुनें; ऑर्डर या भाव देखने के लिए हाल के ऑर्डर या स्थानीय बाज़ार भाव चुनें।'
+        : isIndustry()
+          ? 'डैशबोर्ड आसपास के बाज़ार, आपके ऑर्डर, बातचीत और खरीद की ज़रूरतों का सार दिखाता है। किसानों को अपनी ज़रूरत बताने के लिए ज़रूरत जोड़ें चुनें।'
+          : 'डैशबोर्ड आसपास की उपज, आपके ऑर्डर, ऑर्डर राशि और बातचीत का सार दिखाता है। बाज़ार खोलने के लिए उपज देखें और खरीद देखने के लिए हाल के ऑर्डर चुनें।',
+    );
+    if (has('favorite', 'save listing', 'verified', 'rating', 'review', 'पसंदीदा', 'सत्यापित', 'रेटिंग', 'समीक्षा')) return say(
+      'A Verified badge indicates the listing or account has a verification status in the app. The heart toggles the listing’s saved icon; this demo does not provide a separate saved-list page. Ratings are shown when available.',
+      'सत्यापित का निशान ऐप में सूची या खाते की सत्यापन स्थिति बताता है। दिल वाला बटन सूची को पसंदीदा दिखाता या हटाता है; इस डेमो में पसंदीदा सूचियों का अलग पृष्ठ नहीं है। रेटिंग उपलब्ध होने पर दिखाई जाती है।',
+    );
+    if (has('plant ai', 'what can you do', 'what can you answer', 'chatbot', 'chat bot', 'assistant', 'कृषि सहायक', 'Plant AI', 'क्या कर सकते', 'क्या पूछ सकते')) return say(
+      'I’m Plant AI. Ask me how to use a feature or complete a task. I can guide you through your dashboard, buying or listing produce, industry requirements, orders and payments, messages, notifications, profile settings, and market prices.',
+      'मैं Plant AI हूँ। किसी सुविधा या काम के बारे में पूछें। मैं डैशबोर्ड, उपज खरीदने या सूचीबद्ध करने, उद्योग की ज़रूरतें, ऑर्डर और भुगतान, संदेश, सूचनाएँ, प्रोफ़ाइल और बाज़ार भाव समझा सकता हूँ।',
+    );
+    return say(
+      'I couldn’t match that question to an app feature yet. Try asking about your dashboard, finding or buying produce, listing produce, industry requirements, orders or payments, messages, notifications, profile, or market prices. You can also tap a suggested topic.',
+      'मैं इस सवाल को ऐप की किसी सुविधा से नहीं जोड़ पाया। डैशबोर्ड, उपज खोजने या खरीदने, उपज सूची, उद्योग की ज़रूरत, ऑर्डर या भुगतान, संदेश, सूचनाएँ, प्रोफ़ाइल या बाज़ार भाव के बारे में पूछें। नीचे सुझाया गया विषय भी चुन सकते हैं।',
+    );
+  }
+  function helpChatTranscript() {
+    if (!state.helpChatMessages.length) return `<div class="help-chat-bubble">${word('Hello! I’m Plant AI, your agriculture app assistant. Ask in English or Hindi about any app feature.','नमस्ते! मैं Plant AI हूँ। हिंदी या अंग्रेज़ी में पूछें; मैं ऐप का उपयोग समझाऊँगा।')}</div>`;
+    return state.helpChatMessages.map((message) => `<div class="help-chat-bubble ${message.from === 'user' ? 'user' : 'assistant'}">${esc(message.text)}</div>`).join('');
+  }
+  function sendHelpChat(message) {
+    const text = String(message || '').trim();
+    if (!text) return;
+    state.helpChatMessages.push({ from: 'user', text }, { from: 'assistant', text: helpChatReply(text) });
+    state.helpChatMessages = state.helpChatMessages.slice(-40);
+    const transcript = document.getElementById('help-chat-transcript');
+    if (transcript) {
+      transcript.innerHTML = helpChatTranscript();
+      transcript.scrollTop = transcript.scrollHeight;
+    }
+    document.querySelector('.help-chat-suggestions')?.remove();
+    const input = document.getElementById('help-chat-input');
+    if (input) { input.value = ''; input.focus(); }
+  }
+  function openHelpChat() {
+    const topics = [
+      ['Dashboard', 'How do I use the dashboard?', 'डैशबोर्ड'],
+      ['Find or buy produce', 'How do I find and buy produce?', 'उपज खोजें या खरीदें'],
+      ['List produce', 'How do I list my produce?', 'अपनी उपज सूचीबद्ध करें'],
+      ['Industry requirements', 'How do industry buyers post a requirement?', 'उद्योग की खरीद ज़रूरत'],
+      ['Orders and payments', 'How do orders, receipts, and payments work?', 'ऑर्डर और भुगतान'],
+      ['Messages', 'How do I use Messages?', 'संदेश'],
+      ['Notifications', 'Where do I find Notifications?', 'सूचनाएँ'],
+      ['Market prices', 'How do I use Regional market prices?', 'क्षेत्रीय बाज़ार भाव'],
+      ['Profile and language', 'How do I change my profile, location, or language?', 'प्रोफ़ाइल, जगह और भाषा'],
+    ];
+    const suggestions = state.helpChatMessages.length ? '' : `<div class="help-chat-suggestions" aria-label="${word('Suggested topics','सुझाए गए विषय')}">${topics.map(([label, prompt, hindi]) => `<button type="button" data-help-prompt="${esc(prompt)}">${word(label, hindi)}</button>`).join('')}</div>`;
+    const markup = `<div class="help-chat-header"><div><div class="eyebrow">${word('PLANT AI','Plant AI')}</div><h2 id="modal-title">${word('How can I help?','मैं आपकी क्या मदद करूँ?')}</h2><p>${word('Ask Plant AI about any app feature. English and Hindi are supported.','ऐप की किसी भी सुविधा के बारे में पूछें। अंग्रेज़ी और हिंदी उपलब्ध हैं।')}</p></div><button class="close-btn" type="button" data-action="close-modal" aria-label="${word('Close','बंद करें')}">×</button></div><div class="help-chat-main"><div id="help-chat-transcript" class="help-chat-transcript" role="log" aria-live="polite">${helpChatTranscript()}</div>${suggestions}<form id="help-chat-form" class="help-chat-form"><input id="help-chat-input" name="message" maxlength="300" autocomplete="off" placeholder="${word('Ask how to use a feature...','किसी सुविधा के उपयोग के बारे में पूछें...')}" aria-label="${word('Ask Plant AI','Plant AI से पूछें')}" required /><button type="submit">${word('Send','भेजें')}</button></form><div class="help-chat-note">${word('Plant AI · Answers follow your selected language.','Plant AI · जवाब आपकी चुनी हुई भाषा में मिलेंगे।')}</div></div>`;
+    openModal(markup, true);
+    document.querySelector('.modal')?.classList.add('help-chat-modal');
+    document.getElementById('help-chat-form')?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      sendHelpChat(new FormData(event.currentTarget).get('message'));
+    });
+    document.querySelectorAll('[data-help-prompt]').forEach((button) => button.addEventListener('click', () => sendHelpChat(button.dataset.helpPrompt)));
+    document.getElementById('help-chat-input')?.focus();
+  }
   function marketPriceChatReply(question) {
     const text = String(question || '').toLowerCase();
     if (text.includes('modal')) return 'Modal price is the price at which the largest quantity was traded in a market on the reported date.';
@@ -531,7 +659,7 @@
     const draft = state.marketPriceDraft;
     const options = marketPriceFilterOptions(draft);
     const hasStateData = state.marketPriceLoaded && state.marketPriceLoadedState === draft.state;
-    const filters = `<form id="market-price-filter-form" class="market-price-filter-panel"><div class="market-price-filter-grid">${marketPriceSelect('state', 'State / UT', options.states, draft.state, 'Choose a state')}${marketPriceSelect('district', 'District', options.districts, draft.district, 'All districts', !draft.state)}${marketPriceSelect('commodityGroup', 'Commodity group', options.groups, draft.commodityGroup, 'All groups', !draft.state)}${marketPriceSelect('commodity', 'Commodity / crop', options.commodities, draft.commodity, 'All crops', !draft.state || !options.commodities.length)}${marketPriceSelect('variety', 'Variety', options.varieties, draft.variety, 'All varieties', !hasStateData || !draft.commodity || !options.varieties.length)}${marketPriceSelect('grade', 'Grade', options.grades, draft.grade, 'All grades', !hasStateData || !options.grades.length)}${marketPriceSelect('market', 'Market', options.markets, draft.market, 'All markets', !hasStateData || !options.markets.length)}<div class="field"><label for="market-price-fromDate">From date</label><input id="market-price-fromDate" type="date" name="fromDate" value="${esc(draft.fromDate)}" /></div><div class="field"><label for="market-price-toDate">To date</label><input id="market-price-toDate" type="date" name="toDate" value="${esc(draft.toDate)}" /></div></div><div class="market-price-filter-actions"><span>Choose your filters, then press Search. Variety, grade, and market options come from the selected state's report.</span><div><button class="button button-outline" type="button" data-action="reset-market-price-filters">Reset</button><button class="button button-primary" type="submit" ${state.marketPriceLoading || !draft.state ? 'disabled' : ''}>${state.marketPriceLoading ? 'Loading...' : 'Search'}</button></div></div></form>`;
+    const filters = `<form id="market-price-filter-form" class="market-price-filter-panel"><div class="market-price-filter-grid">${marketPriceSelect('state', 'State / UT', options.states, draft.state, 'Choose a state')}${marketPriceSelect('district', 'District', options.districts, draft.district, 'All districts', !draft.state)}${marketPriceSelect('commodityGroup', 'Commodity group', options.groups, draft.commodityGroup, 'All groups', !draft.state)}${marketPriceSelect('commodity', 'Commodity / crop', options.commodities, draft.commodity, 'All crops', !draft.state || !options.commodities.length)}<div class="field"><label for="market-price-fromDate">From date</label><input id="market-price-fromDate" type="date" name="fromDate" value="${esc(draft.fromDate)}" /></div><div class="field"><label for="market-price-toDate">To date</label><input id="market-price-toDate" type="date" name="toDate" value="${esc(draft.toDate)}" /></div></div><div class="market-price-filter-actions"><span>Choose your filters, then press Search to apply them to the daily price reports.</span><div><button class="button button-outline" type="button" data-action="reset-market-price-filters">Reset</button><button class="button button-primary" type="submit" ${state.marketPriceLoading || !draft.state ? 'disabled' : ''}>${state.marketPriceLoading ? 'Loading...' : 'Search'}</button></div></div></form>`;
     const matching = filteredMarketPrices();
     const pageSize = state.marketPricePageSize;
     const pageCount = Math.max(1, Math.ceil(matching.length / pageSize));
@@ -849,12 +977,9 @@
         const field = event.target;
         if (!field.name) return;
         const draft = { ...state.marketPriceDraft, [field.name]: field.value };
-        if (field.name === 'state') Object.assign(draft, { district: '', commodityGroup: '', commodity: '', variety: '', grade: '', market: '' });
-        if (field.name === 'district') Object.assign(draft, { commodityGroup: '', commodity: '', variety: '', grade: '', market: '' });
-        if (field.name === 'commodityGroup') Object.assign(draft, { commodity: '', variety: '', grade: '', market: '' });
-        if (field.name === 'commodity') Object.assign(draft, { variety: '', grade: '', market: '' });
-        if (field.name === 'variety') Object.assign(draft, { grade: '', market: '' });
-        if (field.name === 'grade') draft.market = '';
+        if (field.name === 'state') Object.assign(draft, { district: '', commodityGroup: '', commodity: '' });
+        if (field.name === 'district') Object.assign(draft, { commodityGroup: '', commodity: '' });
+        if (field.name === 'commodityGroup') draft.commodity = '';
         state.marketPriceDraft = draft;
         if (field.name === 'state') {
           state.marketPriceRecords = [];
@@ -875,7 +1000,7 @@
         const fromDate = String(data.get('fromDate') || '');
         const toDate = String(data.get('toDate') || '');
         if (fromDate && toDate && fromDate > toDate) { toast(word('From date must be before to date.', 'आरंभ तारीख अंतिम तारीख से पहले होनी चाहिए।')); return; }
-        const filters = { ...state.marketPriceDraft, state: String(data.get('state') || ''), district: String(data.get('district') || ''), commodityGroup: String(data.get('commodityGroup') || ''), commodity: String(data.get('commodity') || ''), variety: String(data.get('variety') || ''), grade: String(data.get('grade') || ''), market: String(data.get('market') || ''), fromDate, toDate };
+        const filters = { ...state.marketPriceDraft, state: String(data.get('state') || ''), district: String(data.get('district') || ''), commodityGroup: String(data.get('commodityGroup') || ''), commodity: String(data.get('commodity') || ''), fromDate, toDate };
         state.marketPriceDraft = filters;
         state.marketPricePage = 1;
         if (filters.state && (!state.marketPriceLoaded || state.marketPriceLoadedState !== filters.state)) await loadMarketPrices();
@@ -907,7 +1032,7 @@
         case 'close-modal': closeModal();break;
         case 'back-from-listing-form': returnFromListingForm();break;
         case 'retry-market-prices': void loadMarketPrices(true);break;
-        case 'reset-market-price-filters': state.marketPriceDraft = { state: state.marketPriceDraft.state, district: '', commodityGroup: '', commodity: '', variety: '', grade: '', market: '', fromDate: '', toDate: '' }; state.marketPriceApplied = null; state.marketPricePage = 1; render();break;
+        case 'reset-market-price-filters': state.marketPriceDraft = { state: state.marketPriceDraft.state, district: '', commodityGroup: '', commodity: '', fromDate: '', toDate: '' }; state.marketPriceApplied = null; state.marketPricePage = 1; render();break;
         case 'toggle-market-price-chat': state.marketPriceChatOpen = !state.marketPriceChatOpen; render();break;
         case 'favorite': el.classList.toggle('saved');el.textContent=el.classList.contains('saved')?'♥':'♡';toast(el.classList.contains('saved')?word('Saved to your favorites.','पसंदीदा में जोड़ा।'):word('Removed from favorites.','पसंदीदा से हटाया।'));break;
         case 'location': openLocation();break;
@@ -917,7 +1042,7 @@
         case 'mark-all-notifications-read': markAllNotificationsRead();break;
         case 'language': toggleLanguage();break;
         case 'logout': signOut();break;
-        case 'help': openModal(`<div class="modal-head"><div><div class="eyebrow">${word('WE’RE HERE FOR YOU','हम आपके साथ हैं')}</div><h2 id="modal-title">${word('Farmer support','किसान सहायता')}</h2><p>${word('This prototype does not connect to a support desk yet.','इस प्रोटोटाइप में सहायता टीम अभी जुड़ी नहीं है।')}</p></div><button class="close-btn" data-action="close-modal">×</button></div><div class="insight-card"><span class="big-emoji">👋</span><h3>${word('Need a hand getting started?','शुरू करने में मदद चाहिए?')}</h3><p>${word('A real launch should include local-language phone support and assisted onboarding for farmers.','असली लॉन्च में स्थानीय भाषा की फ़ोन सहायता और किसानों के लिए ऑनबोर्डिंग मदद शामिल होनी चाहिए।')}</p></div><div class="modal-footer"><button class="button button-primary" data-action="close-modal">${word('Got it','समझ गया')}</button></div>`);break;
+        case 'help': openHelpChat();break;
         case 'contact-note': toast(word('Agree quantity, grade, price, and delivery in writing.','मात्रा, गुणवत्ता, भाव और डिलीवरी लिखित में तय करें।'));break;
         case 'print-receipt': window.print();break;
       }

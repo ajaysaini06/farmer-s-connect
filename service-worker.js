@@ -1,5 +1,5 @@
-const CACHE_NAME = 'farmers-connect-v33';
-const APP_SHELL = ['./', './index.html', './styles.css', './app.js?v=33', './manifest.webmanifest', './assets/leaf.svg'];
+const CACHE_NAME = 'farmers-connect-v39';
+const APP_SHELL = ['./', './index.html', './styles.css', './app.js?v=39', './manifest.webmanifest', './assets/leaf.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));

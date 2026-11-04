@@ -17,6 +17,16 @@ async function loadDataGovApiKeyFromFile() {
 }
 await loadDataGovApiKeyFromFile();
 const INDIA_LOCATIONS = JSON.parse(await readFile(path.join(ROOT, 'india-locations.json'), 'utf8'));
+// Explicit references so Vercel's build bundles these static files with the function.
+const BUNDLED_STATIC_FILES = [
+  path.join(ROOT, 'index.html'),
+  path.join(ROOT, 'client.js'),
+  path.join(ROOT, 'styles.css'),
+  path.join(ROOT, 'manifest.webmanifest'),
+  path.join(ROOT, 'service-worker.js'),
+  path.join(ROOT, 'india-locations.json'),
+  path.join(ROOT, 'assets', 'leaf.svg')
+];
 const DATA_DIR = process.env.DATA_DIR || (process.env.VERCEL ? '/tmp/data' : path.join(ROOT, 'data'));
 const DB_FILE = path.join(DATA_DIR, 'farmers-connect.sqlite');
 const IDENTITY_KEY_FILE = path.join(DATA_DIR, 'identity.key');

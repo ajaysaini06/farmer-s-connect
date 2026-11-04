@@ -947,7 +947,7 @@ const MIME = new Map([
   ['.html', 'text/html; charset=utf-8'], ['.js', 'text/javascript; charset=utf-8'], ['.css', 'text/css; charset=utf-8'],
   ['.svg', 'image/svg+xml'], ['.json', 'application/json; charset=utf-8'], ['.webmanifest', 'application/manifest+json; charset=utf-8'],
 ]);
-const server = createServer(async (req, res) => {
+async function handleRequest(req, res) {
   let requestUrl;
   try {
     requestUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
@@ -970,15 +970,20 @@ const server = createServer(async (req, res) => {
     if (!res.headersSent) json(res, status, { error: marketPriceRequest ? error.message : status >= 500 ? 'The server could not complete that request.' : error.message }, securityHeaders());
     else res.destroy();
   }
-});
-
-server.listen(PORT, HOST, () => {
-  console.log(`Farmer's Connect is running at http://${HOST}:${PORT}`);
-  if (!process.env.DATA_GOV_API_KEY) console.warn('Market prices are disabled: DATA_GOV_API_KEY is not set. Copy .env.example to .env, add your personal data.gov.in API key, then restart the server.');
-  console.log(IS_PRODUCTION ? 'Production mode: configure an OTP provider before enabling sign-in.' : `Development OTP: ${DEV_OTP}`);
-  console.log(`SQLite database: ${DB_FILE}`);
-});
-
-for (const signal of ['SIGINT', 'SIGTERM']) {
-  process.on(signal, () => server.close(() => { db.close(); process.exit(0); }));
 }
+const server = createServer(handleRequest);
+
+if (!process.env.VERCEL) {
+  server.listen(PORT, HOST, () => {
+    console.log(`Farmer's Connect is running at http://${HOST}:${PORT}`);
+    if (!process.env.DATA_GOV_API_KEY) console.warn('Market prices are disabled: DATA_GOV_API_KEY is not set. Copy .env.example to .env, add your personal data.gov.in API key, then restart the server.');
+    console.log(IS_PRODUCTION ? 'Production mode: configure an OTP provider before enabling sign-in.' : `Development OTP: ${DEV_OTP}`);
+    console.log(`SQLite database: ${DB_FILE}`);
+  });
+
+  for (const signal of ['SIGINT', 'SIGTERM']) {
+    process.on(signal, () => server.close(() => { db.close(); process.exit(0); }));
+  }
+}
+
+export default handleRequest;

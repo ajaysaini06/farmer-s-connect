@@ -616,7 +616,7 @@ function publicFile(pathname) {
   const decoded = decodeURIComponent(pathname);
   if (decoded.replace(/\/+$/, '').toLowerCase() === '/dashboard') return path.join(ROOT, 'index.html');
   const relative = decoded === '/' ? 'index.html' : decoded.slice(1);
-  const allowed = new Set(['index.html', 'app.js', 'styles.css', 'manifest.webmanifest', 'service-worker.js', 'india-locations.json', 'assets/leaf.svg']);
+  const allowed = new Set(['index.html', 'client.js', 'styles.css', 'manifest.webmanifest', 'service-worker.js', 'india-locations.json', 'assets/leaf.svg']);
   if (!allowed.has(relative)) return null;
   return path.join(ROOT, relative);
 }

@@ -17,7 +17,7 @@ async function loadDataGovApiKeyFromFile() {
 }
 await loadDataGovApiKeyFromFile();
 const INDIA_LOCATIONS = JSON.parse(await readFile(path.join(ROOT, 'india-locations.json'), 'utf8'));
-const DATA_DIR = path.join(ROOT, 'data');
+const DATA_DIR = process.env.DATA_DIR || (process.env.VERCEL ? '/tmp/data' : path.join(ROOT, 'data'));
 const DB_FILE = path.join(DATA_DIR, 'farmers-connect.sqlite');
 const IDENTITY_KEY_FILE = path.join(DATA_DIR, 'identity.key');
 const PORT = Number(process.env.PORT || 3000);
